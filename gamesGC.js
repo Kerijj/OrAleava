@@ -1,0 +1,500 @@
+document.addEventListener('DOMContentLoaded', () => {
+  const contentDiv = document.getElementById('content');
+
+  // Список игр
+  const gamesList = [
+    {title:"Найди пару", description:"Выбирайте пары карточек с разными эмодзи.", id:"find-pair"},
+    {title:"Иврит-квиз", description:"Отгадай правильное слово по переводу.", id:"hebrew-quiz"},
+    {title:"Крестики-нолики", description:"Играйте против компьютера.", id:"tic-tac-toe"},
+    {title:"Угадай цвет", description:"Проверь свою реакцию и внимание.", id:"guess-color"},
+    {title:"Лови объект", description:"Поймай движущийся объект.", id:"catch-object"},
+    {title:"Выбери сердечко", description:"Получай позитивные аффирмации.", id:"heart-affirmations"}
+  ];
+
+  // Функция отображения списка игр
+  function showGamesList() {
+    contentDiv.innerHTML = '<h1>Мини-игры</h1>';
+    const grid = document.createElement('div');
+    grid.classList.add('grid');
+
+    gamesList.forEach(item => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.innerHTML = `<h3>${item.title}</h3><p>${item.description}</p>`;
+      card.addEventListener('click', () => openGame(item.id));
+      grid.appendChild(card);
+    });
+
+    contentDiv.appendChild(grid);
+  }
+
+  // Функция открытия игры
+  function openGame(gameId) {
+    contentDiv.innerHTML = '';
+    const container = document.createElement('div');
+    container.classList.add('container-item');
+    container.style.maxWidth = '700px';
+    contentDiv.appendChild(container);
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = 'Назад';
+    backBtn.style.marginTop = '20px';
+    backBtn.style.padding = '8px 16px';
+    backBtn.style.cursor = 'pointer';
+    backBtn.style.borderRadius = '8px';
+    backBtn.addEventListener('click', showGamesList);
+
+    switch(gameId) {
+      case "find-pair":
+        container.innerHTML = `<h2>Найди пару</h2><div id="pair-game" style="display:grid;grid-template-columns:repeat(8,50px);gap:10px;justify-content:center;"></div>`;
+        container.appendChild(backBtn);
+        startFindPair();
+        break;
+      case "hebrew-quiz":
+        container.innerHTML = `<h2>Иврит-квиз</h2><div id="quiz-area"></div><p id="quiz-timer"></p>`;
+        container.appendChild(backBtn);
+        startHebrewQuiz();
+        break;
+      case "tic-tac-toe":
+        container.innerHTML = `<h2>Крестики-нолики</h2><div id="tic-tac-toe" style="display:grid;grid-template-columns:repeat(3,80px);gap:5px;justify-content:center;"></div>`;
+        container.appendChild(backBtn);
+        startTicTacToe();
+        break;
+      case "guess-color":
+        container.innerHTML = `<h2>Угадай цвет</h2><div id="color-game" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;"></div><p id="color-task" style="text-align:center;margin-top:20px;"></p>`;
+        container.appendChild(backBtn);
+        startGuessColor();
+        break;
+      case "catch-object":
+        container.innerHTML = `<h2>Лови объект</h2><div id="catch-area" style="position:relative;width:100%;height:400px;border:1px solid #ccc;"></div><p>Очки: <span id="catch-score">0</span></p>`;
+        container.appendChild(backBtn);
+        startCatchObject();
+        break;
+      case "heart-affirmations":
+        container.innerHTML = `<h2>Выбери сердечко</h2><div id="heart-area" style="display:grid;grid-template-columns:repeat(10,50px);gap:5px;justify-content:center;"></div>`;
+        container.appendChild(backBtn);
+        startHeartAffirmations();
+        break;
+      default:
+        container.innerHTML = "<p>Игра не найдена.</p>";
+        container.appendChild(backBtn);
+    }
+  }
+
+  // =========================
+  // Игры
+  // =========================
+
+  function startFindPair() {
+    const emojis = ["⭐","⚡","🔥","💧","🎵","🎯","🎈","💎","🎁","🪐","🌈","🎃","🍀","☀️","🍎","🍌"];
+    const cards = [...emojis, ...emojis];
+    shuffle(cards);
+    const grid = document.getElementById('pair-game');
+    let first = null, second = null;
+
+    cards.forEach((emoji) => {
+      const card = document.createElement('div');
+      card.textContent = "❓";
+      card.style.fontSize = "24px";
+      card.style.width = "50px";
+      card.style.height = "50px";
+      card.style.display = "flex";
+      card.style.alignItems = "center";
+      card.style.justifyContent = "center";
+      card.style.border = "1px solid #ccc";
+      card.style.cursor = "pointer";
+      card.dataset.value = emoji;
+      grid.appendChild(card);
+
+      card.addEventListener('click', () => {
+        if(card.textContent !== "❓") return;
+        card.textContent = emoji;
+        if(!first) first = card;
+        else if(!second) {
+          second = card;
+          if(first.dataset.value === second.dataset.value) {
+            first = null; second = null;
+          } else {
+            setTimeout(() => { first.textContent = "❓"; second.textContent = "❓"; first=null; second=null; }, 800);
+          }
+        }
+      });
+    });
+  }
+
+  function startHebrewQuiz() {
+    const words = [
+
+  {heb:"מִטְרִיָּה", rus:"зонт"},
+  {heb:"שׁוֹק", rus:"рынок"},
+  {heb:"סֵפֶר", rus:"книга"},
+  {heb:"תַּלְמִיד", rus:"ученик"},
+  {heb:"מִשְׁפָּחָה", rus:"семья"},
+  {heb:"שלום", rus:"привет"},
+  {heb:"תודה", rus:"спасибо"},
+  {heb:"מים", rus:"вода"},
+  {heb:"אוכל", rus:"еда"},
+  {heb:"בית", rus:"дом"},
+  {heb:"שמש", rus:"солнце"},
+  {heb:"ספר", rus:"книга"},
+  {heb:"ילד", rus:"ребёнок"},
+  {heb:"חבר", rus:"друг"},
+  {heb:"לילה", rus:"ночь"},
+  {heb:"בוקר", rus:"утро"},
+  {heb:"לימוד", rus:"учёба"},
+  {heb:"עץ", rus:"дерево"},
+  {heb:"פרח", rus:"цветок"},
+  {heb:"חג", rus:"праздник"},
+  {heb:"כדור", rus:"мяч"},
+  {heb:"שולחן", rus:"стол"},
+  {heb:"כיסא", rus:"стул"},
+  {heb:"מורה", rus:"учитель"},
+  {heb:"תלמיד", rus:"ученик"},
+  {heb:"סוכר", rus:"сахар"},
+  {heb:"לחם", rus:"хлеб"},
+  {heb:"דג", rus:"рыба"},
+  {heb:"חתול", rus:"кот"},
+  {heb:"כלב", rus:"собака"},
+  {heb:"ציפור", rus:"птица"},
+  {heb:"שוק", rus:"рынок"},
+  {heb:"עיר", rus:"город"},
+  {heb:"מדינה", rus:"страна"},
+  {heb:"ים", rus:"море"},
+  {heb:"חוף", rus:"пляж"},
+  {heb:"גינה", rus:"сад"},
+  {heb:"כביש", rus:"дорога"},
+  {heb:"מכונית", rus:"машина"},
+  {heb:"אוטובוס", rus:"автобус"},
+  {heb:"מטוס", rus:"самолёт"},
+  {heb:"רכבת", rus:"поезд"},
+  {heb:"שעון", rus:"часы"},
+  {heb:"טלפון", rus:"телефон"},
+  {heb:"מחשב", rus:"компьютер"},
+  {heb:"סרט", rus:"фильм"},
+  {heb:"מוזיקה", rus:"музыка"},
+  {heb:"שיר", rus:"песня"},
+  {heb:"מתנה", rus:"подарок"},
+  {heb:"חגיגה", rus:"вечеринка"},
+  {heb:"שמיים", rus:"небо"},
+  {heb:"כוכב", rus:"звезда"},
+  {heb:"ירח", rus:"луна"},
+  {heb:"גשם", rus:"дождь"},
+  {heb:"שלג", rus:"снег"},
+  {heb:"רוח", rus:"ветер"},
+  {heb:"אוויר", rus:"воздух"},
+  {heb:"אש", rus:"огонь"},
+  {heb:"אדמה", rus:"земля"},
+  {heb:"הר", rus:"гора"},
+  {heb:"נהר", rus:"река"},
+  {heb:"אגם", rus:"озеро"},
+  {heb:"יער", rus:"лес"},
+  {heb:"חיה", rus:"животное"},
+  {heb:"פירות", rus:"фрукты"},
+  {heb:"ירקות", rus:"овощи"},
+  {heb:"בגדים", rus:"одежда"},
+  {heb:"כובע", rus:"шапка"},
+  {heb:"נעליים", rus:"обувь"},
+  {heb:"חולצה", rus:"рубашка"},
+  {heb:"מכנסיים", rus:"штаны"},
+  {heb:"מעיל", rus:"пальто"},
+  {heb:"משפחה", rus:"семья"},
+  {heb:"אמא", rus:"мама"},
+  {heb:"אבא", rus:"папа"},
+  {heb:"אח", rus:"брат"},
+  {heb:"אחות", rus:"сестра"},
+  {heb:"שמשייה", rus:"зонт"},
+  {heb:"מטרייה", rus:"зонтик"},
+  {heb:"ספרייה", rus:"библиотека"},
+  {heb:"חנות", rus:"магазин"},
+  {heb:"בית ספר", rus:"школа"},
+  {heb:"גן ילדים", rus:"детский сад"},
+  {heb:"תחנה", rus:"станция"},
+  {heb:"כביסה", rus:"стирка"},
+  {heb:"מטבח", rus:"кухня"},
+  {heb:"חדר", rus:"комната"},
+  {heb:"ספה", rus:"диван"},
+  {heb:"מיטה", rus:"кровать"},
+  {heb:"דלת", rus:"дверь"},
+  {heb:"חלון", rus:"окно"},
+  {heb:"מראה", rus:"зеркало"},
+  {heb:"שעון קיר", rus:"настенные часы"},
+  {heb:"ספרייה ציבורית", rus:"публичная библиотека"},
+  {heb:"מרפאה", rus:"клиника"},
+  {heb:"בית חולים", rus:"больница"},
+  {heb:"פארק", rus:"парк"},
+  {heb:"שביל", rus:"тропинка"},
+  {heb:"גשר", rus:"мост"},
+  {heb:"כיכר", rus:"площадь"},
+  {heb:"מוזיאון", rus:"музей"},
+  {heb:"תיאטרון", rus:"театр"},
+  {heb:"קולנוע", rus:"кинотеатр"},
+  {heb:"מסעדה", rus:"ресторан"},
+  {heb:"בית קפה", rus:"кафе"},
+  {heb:"חוף ים", rus:"морской пляж"},
+  {heb:"בריכה", rus:"бассейн"},
+  {heb:"מחשב נייד", rus:"ноутбук"},
+  {heb:"טלויזיה", rus:"телевизор"},
+  {heb:"טלפון נייד", rus:"мобильный телефон"},
+  {heb:"ריהוט", rus:"мебель"},
+  {heb:"שולחן עבודה", rus:"рабочий стол"},
+  {heb:"כיסא משרדי", rus:"офисное кресло"},
+  {heb:"מקלדת", rus:"клавиатура"},
+  {heb:"עכבר", rus:"мышь"},
+  {heb:"ספר", rus:"книга"},
+  {heb:"מחברת", rus:"тетрадь"},
+  {heb:"עט", rus:"ручка"},
+  {heb:"עיפרון", rus:"карандаш"},
+  {heb:"דף", rus:"лист бумаги"},
+  {heb:"חלון ראווה", rus:"витрина"},
+  {heb:"דשא", rus:"газон"},
+  {heb:"עץ גבוה", rus:"высокое дерево"},
+  {heb:"פרח צבעוני", rus:"цветок"},
+  {heb:"שמש", rus:"солнце"},
+  {heb:"ירח", rus:"луна"},
+  {heb:"כוכב", rus:"звезда"},
+  {heb:"נהר", rus:"река"},
+  {heb:"אגם", rus:"озеро"},
+  {heb:"חוף", rus:"пляж"},
+  {heb:"הרים", rus:"горы"},
+  {heb:"יער", rus:"лес"},
+  {heb:"חיות מחמד", rus:"домашние животные"},
+  {heb:"כלב", rus:"собака"},
+  {heb:"חתול", rus:"кот"},
+  {heb:"דג", rus:"рыба"},
+  {heb:"ציפור", rus:"птица"},
+  {heb:"כביש", rus:"дорога"},
+  {heb:"גשר", rus:"мост"},
+  {heb:"תחנת אוטובוס", rus:"автобусная станция"},
+  {heb:"רמזור", rus:"светофор"},
+  {heb:"מגרש משחקים", rus:"детская площадка"},
+  {heb:"בריכת שחייה", rus:"бассейн"},
+  {heb:"חנות ממתקים", rus:"конфетный магазин"},
+  {heb:"מסעדת מזון מהיר", rus:"фастфуд"},
+  {heb:"בתי קפה", rus:"кафе"},
+  {heb:"סופרמרקט", rus:"супермаркет"},
+  {heb:"קניון", rus:"торговый центр"},
+  {heb:"חניון", rus:"парковка"},
+  {heb:"תחנת רכבת", rus:"железнодорожная станция"},
+  {heb:"מוזיאון לאמנות", rus:"музей искусств"},
+  {heb:"תיאטרון ילדים", rus:"детский театр"},
+  {heb:"קולנוע עירוני", rus:"городской кинотеатр"}
+
+    ];
+    // Перемешиваем слова для случайного порядка
+    shuffle(words);
+    
+    let score = 0;
+    let timeLeft = 60;
+    const area = document.getElementById('quiz-area');
+    const timer = document.getElementById('quiz-timer');
+    let index = 0;
+
+    // Массив для хранения результатов игрока
+    const results = [];
+
+    // Запуск таймера
+    const timerInterval = setInterval(() => {
+        if(timeLeft <= 0) {
+            clearInterval(timerInterval);
+            endQuiz();
+        } else {
+            timer.textContent = `Время: ${timeLeft} сек`;
+            timeLeft--;
+        }
+    }, 1000);
+
+    
+    function nextWord() {
+    if(index >= words.length) {
+            // Конец игры: показываем правильные ответы
+            area.innerHTML = `<h2>Игра окончена!</h2>
+                              <p>Ваш результат: ${score} правильных ответов из ${words.length}</p>
+                              <h3>Правильные ответы:</h3>
+                              <ul>
+                                ${words.map(w => `<li>${w.rus} — ${w.heb}</li>`).join('')}
+                              </ul>
+                              <button id="retry">Попробовать ещё раз</button>`;
+            document.getElementById('retry').addEventListener('click', startHebrewQuiz);
+            return;
+        }
+
+        const current = words[index];
+        area.innerHTML = `
+            <p>Переведите на иврит: <b>${current.rus}</b></p>
+            <input type="text" id="answer" />
+            <button id="submit">Ответить</button>
+        `;
+
+        document.getElementById('submit').addEventListener('click', () => {
+            const ans = document.getElementById('answer').value.trim();
+            const correct = ans === current.heb;
+            if(correct) score++;
+            results.push({rus: current.rus, heb: current.heb, user: ans, correct});
+            index++;
+            nextWord();
+        });
+    }
+
+    function endQuiz() {
+        clearInterval(timerInterval); // останавливаем таймер
+        area.innerHTML = `<h2>Игра окончена!</h2>
+                          <p>Ваш результат: ${score} правильных ответов из ${words.length}</p>
+                          <h3>Правильные ответы:</h3>
+                          <ul>
+                            ${results.map(w => `<li>${w.rus} — ${w.heb} | Ваш ответ: ${w.user} — ${w.correct ? '✔' : '❌'}</li>`).join('')}
+                          </ul>
+                          <button id="retry">Попробовать ещё раз</button>`;
+        document.getElementById('retry').addEventListener('click', startHebrewQuiz);
+    }
+
+    // Вспомогательная функция для перемешивания массива
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    nextWord();
+}
+
+    
+
+  function startTicTacToe() {
+    const board = ["","","","","","","","",""];
+    const grid = document.getElementById('tic-tac-toe');
+    let player = "X";
+
+    function render() {
+      grid.innerHTML = "";
+      board.forEach((cell, i) => {
+        const div = document.createElement('div');
+        div.style.width = "80px";
+        div.style.height = "80px";
+        div.style.display = "flex";
+        div.style.alignItems = "center";
+        div.style.justifyContent = "center";
+        div.style.border = "1px solid #333";
+        div.style.fontSize = "40px";
+        div.style.cursor = "pointer";
+        div.textContent = cell;
+        div.addEventListener('click', () => {
+          if(cell!=="") return;
+          board[i] = player;
+          checkWin();
+          player = "O";
+          computerMove();
+        });
+        grid.appendChild(div);
+      });
+    }
+
+    function computerMove() {
+      let empty = board.map((v,i)=>v===""?i:null).filter(v=>v!==null);
+      if(empty.length===0) return;
+      let move = empty[Math.floor(Math.random()*empty.length)];
+      board[move] = "O";
+      player = "X";
+      checkWin();
+      render();
+    }
+
+    function checkWin() {
+      const wins = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      for(const w of wins) {
+        if(board[w[0]]!=="" && board[w[0]]===board[w[1]] && board[w[1]]===board[w[2]]) {
+          alert(board[w[0]] + " победил!");
+          board.fill("");
+          render();
+        }
+      }
+    }
+
+    render();
+  }
+
+  function startGuessColor() {
+    const colors = ["красный","синий","зелёный","жёлтый","оранжевый","фиолетовый","розовый"];
+    const tasks = {
+      "красный":"Найди что-то красное вокруг тебя.",
+      "синий":"Найди что-то синее.",
+      "зелёный":"Найди что-то зелёное.",
+      "жёлтый":"Найди что-то жёлтое.",
+      "оранжевый":"Найди что-то оранжевое.",
+      "фиолетовый":"Найди что-то фиолетовое.",
+      "розовый":"Найди что-то розовое."
+    };
+    const area = document.getElementById('color-game');
+    const taskP = document.getElementById('color-task');
+    area.innerHTML = "";
+    colors.forEach(c => {
+      const btn = document.createElement('button');
+      btn.textContent = c;
+      btn.style.padding = "10px 15px";
+      btn.style.margin = "5px";
+      btn.style.cursor = "pointer";
+      btn.addEventListener('click', () => { taskP.textContent = tasks[c]; });
+      area.appendChild(btn);
+    });
+  }
+
+  function startCatchObject() {
+    const area = document.getElementById('catch-area');
+    let score = 0;
+    const scoreSpan = document.getElementById('catch-score');
+
+    const emoji = "🎯";
+    const obj = document.createElement('div');
+    obj.textContent = emoji;
+    obj.style.position = "absolute";
+    obj.style.fontSize = "32px";
+    obj.style.cursor = "pointer";
+    area.appendChild(obj);
+
+    function moveObj() {
+      const maxX = area.clientWidth - 32;
+      const maxY = area.clientHeight - 32;
+      obj.style.left = Math.random()*maxX + "px";
+      obj.style.top = Math.random()*maxY + "px";
+    }
+
+    obj.addEventListener('click', () => { score++; scoreSpan.textContent = score; moveObj(); });
+    setInterval(moveObj, 800);
+  }
+
+  function startHeartAffirmations() {
+    const area = document.getElementById('heart-area');
+    const affirmations = [
+      "Ты прекрасен!","Не сдавайся!","Ты сияешь!","Верь в себя!","Каждый день — шанс!",
+      "Продолжай двигаться!","Ты особенный!","Будь собой!","Смелее!","Ты талантлив!"
+    ];
+    for(let i=0;i<500;i++){
+      const heart = document.createElement('div');
+      heart.textContent = "❤️";
+      heart.style.fontSize = "24px";
+      heart.style.cursor = "pointer";
+      heart.addEventListener('click', ()=>{
+        const msg = affirmations[Math.floor(Math.random()*affirmations.length)];
+        alert(msg);
+      });
+      area.appendChild(heart);
+    }
+  }
+
+  function shuffle(array) {
+    for(let i=array.length-1;i>0;i--){
+      const j=Math.floor(Math.random()* (i+1));
+      [array[i], array[j]]=[array[j], array[i]];
+    }
+  }
+
+  // Клик по "Мини-игры" в шапке
+  document.querySelector('header nav a[data-page="games"]').addEventListener('click', e => {
+    e.preventDefault();
+    showGamesList();
+  });
+});
