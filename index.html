@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мини-приложение</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Telegram Web App API
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем приложение на весь экран Telegram
+      }
+    });
+  </script>
+</head>
+<body>
+  <!-- Фиксированный хедер с навигацией -->
+  <header>
+    <nav>
+      <a href="#" data-page="games">Мини-игры</a>
+      <a href="#" data-page="challenge">Челендж Дня</a>
+      <a href="#" data-page="word">Слово Дня</a>
+      <a href="#" data-page="fact">Факт Дня</a>
+    </nav>
+  </header>
+
+  <hr>
+
+  <!-- Приветствие -->
+  <div id="greeting">
+    <h2>🎉 Добро пожаловать! Сегодня отличный день для новых открытий! 😉</h2>
+  </div>
+
+  <!-- Контейнер для динамического контента -->
+  <div id="content"></div>
+
+  <!-- Скрипт для мини-игр -->
+  <script src="gamesGC.js"></script>
+
+  <!-- Скрипт для динамической навигации и вывода страниц -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const contentDiv = document.getElementById('content');
+      const links = document.querySelectorAll('header nav a');
+
+      links.forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          const page = link.getAttribute('data-page');
+
+          if(page === "games") {
+            if(typeof showGamesList === "function") showGamesList();
+          } else {
+            loadPage(page);
+          }
+        });
+      });
+
+      async function loadPage(page) {
+        let jsonFile = '';
+
+        switch(page) {
+          case 'challenge': jsonFile = 'data/challenge.json'; break;
+          case 'word': jsonFile = 'data/words.json'; break;
+          case 'fact': jsonFile = 'data/facts.json'; break;
+          default: return;
+        }
+
+        try {
+          const res = await fetch(jsonFile);
+          const data = await res.json();
+          window[page + 'Data'] = data;
+          showRandomItem(page);
+        } catch(err) {
+          console.error("Ошибка загрузки данных:", err);
+          contentDiv.innerHTML = "<p>Не удалось загрузить данные.</p>";
+        }
+      }
+
+      function getRandomItem(array) {
+        return array[Math.floor(Math.random() * array.length)];
+      }
+
+      function showRandomItem(page) {
+        const data = window[page + 'Data'];
+        if(!data) return;
+
+        const item = getRandomItem(data);
+        let html = `<div class="card">`;
+
+        if(page === 'challenge') {
+          html += `<h2>${item.title}</h2><p>${item.description}</p>`;
+        } else if(page === 'word') {
+          html += `<h2>${item.word}</h2>
+                   <p>Значение: ${item.meaning}</p>
+                   <p>Пример: ${item.example}</p>
+                   ${item.fun_fact ? `<p>Интересный факт: ${item.fun_fact}</p>` : ''}`;
+        } else if(page === 'fact') {
+          html += `<h2>${item.title}</h2><p>${item.description}</p>`;
+        }
+
+        html += `</div>`;
+        html += `<button class="more-btn" id="more-btn">Ещё</button>`;
+
+        contentDiv.innerHTML = html;
+
+        document.getElementById('more-btn').addEventListener('click', () => {
+          showRandomItem(page);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
